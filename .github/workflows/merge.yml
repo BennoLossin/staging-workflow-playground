@@ -1,0 +1,42 @@
+name: merge to staging
+on:
+  issue_comment:
+    types: [created]
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
+# Avoid race conditions when merging multiple PRs:
+concurrency:
+  group: merge-to-staging
+  cancel-in-progress: false
+
+jobs:
+  merge:
+    if: github.event.issue.pull_request
+    if: github.event.comment.body == '/PERFORM-MERGE'
+    # Only allow maintainers to merge.
+    if: |
+      false
+      || github.event.issue.user.id == 94611769 # BennoLossin
+      || github.event.issue.user.id == 4065244  # nbdd0121
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          # We need the full history to determine the merge base.
+          fetch-depth: 0
+          ref: staging
+      - uses: actions/setup-python@v6
+        with:
+          # Required for `tomllib`.
+          python-version: '3.11'
+      - name: merge to staging
+        run: python3 .github/scripts/merge-to-staging.py
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.issue.number }}
+          PR_URL: ${{ github.event.issue.pull_request.html_url }}
+          REPO_FULL_NAME: ${{ github.repository }}
+          MAINTAINER_USER: ${{ github.event.comment.user.login }}

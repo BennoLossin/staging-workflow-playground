@@ -1,0 +1,8 @@
+BennoLossin = { name = "Benno Lossin", email = "lossin@kernel.org>" }
+dakr = { name = "Danilo Krummrich", email = "dakr@kernel.org" }
+Darksonn = { name = "Alice Ryhl", email = "aliceryhl@google.com" }
+fbq = { name = "Boqun Feng", email = "boqun@kernel.org" }
+metaspace = { name = "Andreas Hindborg", email = "a.hindborg@kernel.org" }
+nbdd0121 = { name = "Gary Guo", email = "gary@garyguo.net" }
+ojeda = { name = "Miguel Ojeda", email = "ojeda@kernel.org" }
+tgross35 = { name = "Trevor Gross", email = "tmgross@umich.edu" }
