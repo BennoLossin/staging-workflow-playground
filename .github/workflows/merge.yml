@@ -19,7 +19,7 @@ jobs:
     # - 4065244  (nbdd0121)
     if: |
       github.event.issue.pull_request
-      && github.event.comment.body == '/PERFORM-MERGE'
+      && github.event.comment.body == '/stage'
       && (
         false
         || github.event.issue.user.id == 94611769

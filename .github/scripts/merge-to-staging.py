@@ -1,8 +1,10 @@
 import os
+import re
 import requests
 import subprocess
 import sys
 import tomllib
+import traceback
 
 def cmd(command, env=None):
     current_env = os.environ.copy()
@@ -85,13 +87,17 @@ class Issue:
         for reviewer in reviewers:
             metadata = reviewers_meta[reviewer]
             trailer_block += f"Reviewed-by: {metadata['name']} <{metadata['email']}>\n"
-        trailer_block += "Link: {pr_url.strip()}"
+        trailer_block += f"Link: {pr_url.strip()}"
 
         while os.path.exists(".git/rebase-merge"):
-            orig_msg = cmd(["git", "log", "-1", "--format=%B"])
-            new_msg = f"{orig_msg.strip()}\n{trailer_block}"
+            msg = cmd(["git", "log", "-1", "--format=%B"]).strip()
+            msg += "\n"
+            # If we don't already have trailers, add an extra newline.
+            if not re.match("^[A-Za-z0-9]+:\s+.+$", msg.splitlines()[-1]):
+                msg += "\n"
+            msg += trailer_block
 
-            cmd(["git", "commit", "--amend", "-s", "-m", new_msg])
+            cmd(["git", "commit", "--amend", "-s", "-m", msg])
 
             subprocess.run(["git", "rebase", "--continue"], capture_output=True)
 
@@ -136,7 +142,8 @@ class Issue:
 
             self.post_success(reviewers)
         except Exception as e:
-            error_msg = f"❌ **Merge Bot Error:**\n```\n{str(e)}\n```"
+            trace = traceback.format_exec()
+            error_msg = f"Merge unsuccessful:\n```\n{str(e)}\n\n{trace}\n```"
             print(error_msg, file=sys.stderr)
             self.post_comment(error_msg)
             exit(1)

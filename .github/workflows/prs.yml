@@ -19,7 +19,7 @@ jobs:
       - name: Retarget PR to staging
         run: |
           gh pr edit $PR_URL --base staging
-          gh pr comment $PR_URL --body "Hi! I've moved the target of this PR to the \`staging\` branch. Commits first get merged there and then land in `main` later when they also have been merged into the Linux kernel. See [CONTRIBUTING.md](${{ github.event.repository.html_url }}/blob/main/CONTRIBUTING.md) for details. Aside from handling any merge conflicts, no action is required."
+          gh pr comment $PR_URL --body "The target branch of this PR has been moved to the \`staging\` branch. Commits first get merged there and then land in \`main\` when they also have been merged into the Linux kernel. See [CONTRIBUTING.md](${{ github.event.repository.html_url }}/blob/main/CONTRIBUTING.md) for details.\n\nAside from handling any merge conflicts, no action is required."
         env:
           PR_URL: ${{ github.event.pull_request.html_url }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
