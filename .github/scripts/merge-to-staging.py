@@ -57,6 +57,7 @@ class Issue:
         reviewers = set()
         unknown_reviewers = set()
         api_url = f"https://api.github.com/repos/{self.repo}/pulls/{self.pr_num}/reviews"
+        headers = {"Authorization": f"token {self.token}"}
         reviews = requests.get(api_url, headers=headers).json()
         for review in reviews:
             if review['state'] == 'APPROVED':
