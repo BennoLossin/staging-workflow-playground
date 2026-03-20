@@ -38,10 +38,10 @@ class Issue:
         with open("reviewers.toml", "rb") as file:
             return tomllib.load(file)
 
-    def get_maintainer(self, reviewers_meta, maintainer):
-        if maintainer not in reviewers_meta:
-            raise Exception(f"User @{maintainer} is not listed in `reviewers.toml`.")
-        return reviewers_meta[maintainer]
+    def get_maintainer(self, reviewers_meta):
+        if self.maintainer not in reviewers_meta:
+            raise Exception(f"User @{self.maintainer} is not listed in `reviewers.toml`.")
+        return reviewers_meta[self.maintainer]
 
     def setup_git_identity(self, metadata):
         cmd(["git", "config", "user.name", metadata['name']])
@@ -123,7 +123,7 @@ class Issue:
     def run(self):
         try:
             reviewers_meta = self.load_reviewer_metadata()
-            maintainer_meta = self.get_maintainer(reviewers_meta, maintainer)
+            maintainer_meta = self.get_maintainer(reviewers_meta)
             self.setup_git_identity(maintainer_meta)
             pr_data = self.fetch_pr_metadata()
             reviewers = self.fetch_reviews(reviewers_meta)
