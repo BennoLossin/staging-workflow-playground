@@ -44,4 +44,4 @@ jobs:
           PR_NUMBER: ${{ github.event.issue.number }}
           PR_URL: ${{ github.event.issue.pull_request.html_url }}
           REPO_FULL_NAME: ${{ github.repository }}
-          MAINTAINER_USER: ${{ github.event.comment.user.login }}
+          MAINTAINER: ${{ github.event.comment.user.login }}
