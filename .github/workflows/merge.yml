@@ -36,6 +36,7 @@ jobs:
         with:
           # Required for `tomllib`.
           python-version: '3.11'
+      - run: pip install requests
       - name: merge to staging
         run: python3 .github/scripts/merge-to-staging.py
         env:
