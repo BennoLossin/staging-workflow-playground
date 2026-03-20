@@ -14,13 +14,15 @@ concurrency:
 
 jobs:
   merge:
-    if: github.event.issue.pull_request
-    if: github.event.comment.body == '/PERFORM-MERGE'
-    # Only allow maintainers to merge.
     if: |
-      false
-      || github.event.issue.user.id == 94611769 # BennoLossin
-      || github.event.issue.user.id == 4065244  # nbdd0121
+      github.event.issue.pull_request
+      && github.event.comment.body == '/PERFORM-MERGE'
+      && (
+        # Only allow maintainers to merge.
+        false
+        || github.event.issue.user.id == 94611769 # BennoLossin
+        || github.event.issue.user.id == 4065244  # nbdd0121
+      )
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6

@@ -7,9 +7,10 @@ on:
 
 jobs:
   retarget:
-    # Allow merges to main from `staging-frozen`.
-    if: github.head_ref != 'staging-frozen'
-    if: !contains(github.event.pull_request.labels.*.name, 'allow-target-main')
+    # Allow merges to main from `staging-frozen` & with the `allow-target-main` label.
+    if: |
+      github.head_ref != 'staging-frozen'
+      && !contains(github.event.pull_request.labels.*.name, 'allow-target-main')
     runs-on: ubuntu-latest
     permissions:
       pull-requests: write
