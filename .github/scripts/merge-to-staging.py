@@ -134,7 +134,7 @@ class Issue:
             self.create_merge_commit(pr_data)
             self.push_and_close()
 
-            self.post_success(review_trailers)
+            self.post_success(reviewers)
         except Exception as e:
             error_msg = f"❌ **Merge Bot Error:**\n```\n{str(e)}\n```"
             print(error_msg, file=sys.stderr)
