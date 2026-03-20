@@ -1,0 +1,24 @@
+name: Pull Request Triage
+on:
+  pull_request_target:
+    types: [opened, edited, reopened]
+    branches:
+      - main
+
+jobs:
+  retarget:
+    # Allow merges to main from `staging-frozen`.
+    if: github.head_ref != 'staging-frozen'
+    if: !contains(github.event.pull_request.labels.*.name, 'allow-target-main')
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+      contents: write
+    steps:
+      - name: Retarget PR to staging
+        run: |
+          gh pr edit $PR_URL --base staging
+          gh pr comment $PR_URL --body "Hi! I've moved the target of this PR to the \`staging\` branch. Commits first get merged there and then land in `main` later when they also have been merged into the Linux kernel. See [CONTRIBUTING.md](${{ github.event.repository.html_url }}/blob/main/CONTRIBUTING.md) for details. Aside from handling any merge conflicts, no action is required."
+        env:
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
