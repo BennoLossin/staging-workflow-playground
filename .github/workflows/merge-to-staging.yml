@@ -1,4 +1,4 @@
-name: merge to staging
+name: Merge to `staging`
 on:
   issue_comment:
     types: [created]
@@ -42,6 +42,5 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PR_NUMBER: ${{ github.event.issue.number }}
-          PR_URL: ${{ github.event.issue.pull_request.html_url }}
           REPO_FULL_NAME: ${{ github.repository }}
           MAINTAINER: ${{ github.event.comment.user.login }}

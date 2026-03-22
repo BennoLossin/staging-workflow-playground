@@ -80,25 +80,25 @@ class Issue:
             
         return sorted(list(reviewers))
 
-    def create_staging_pr_branch(self):
-        branch = f"staging/pr-{self.pr_num}"
-        cmd(["git", "checkout", "-b", branch, "origin/staging"])
-        cmd(["git", "push", "origin", branch])
+    def create_tmp_branch(self):
+        self.tmp_branch = f"staging/pr-{self.pr_num}"
+        cmd(["git", "checkout", "-b", self.tmp_branch, "origin/staging"])
+        cmd(["git", "push", "origin", self.tmp_branch])
 
-    def change_pr_target(self):
+    def change_target_to_tmp_branch(self):
         api_url = f"https://api.github.com/repos/{self.repo}/pulls/{self.pr_num}"
         headers = {
             "Authorization": f"token {self.token}",
             "Accept": "application/vnd.github+json"
         }
-        resp = requests.patch(api_url, headers=headers, json={"base": f"staging/pr-{self.pr_num}"})
+        resp = requests.patch(api_url, headers=headers, json={"base": self.tmp_branch})
         if resp.status_code != 200:
             raise Exception(f"Failed to change PR target: {resp.text}")
 
-    def merge_pr_fast_forward(self, pr_data):
+    def merge_into_tmp_branch(self, pr_data):
         cmd(["git", "fetch", pr_data['head']['repo']['clone_url'], pr_data['head']['ref']])
         cmd(["git", "merge", "--ff-only", "FETCH_HEAD"])
-        cmd(["git", "push", "origin", f"staging/pr-{self.pr_num}"])
+        cmd(["git", "push", "origin", self.tmp_branch])
 
     def apply_trailers(self, merge_base, pr_url, reviewers, reviewers_meta):
         env = {"GIT_SEQUENCE_EDITOR": "sed -i '/^pick /a break'"}
@@ -123,7 +123,7 @@ class Issue:
 
             subprocess.run(["git", "rebase", "--continue"], capture_output=True)
 
-    def merge_to_staging_and_push(self, pr_data):
+    def merge_into_staging_and_push(self, pr_data):
         head_owner = pr_data['head']['user']['login']
         head_ref = pr_data['head']['ref']
         rewritten_head = cmd(["git", "rev-parse", "HEAD"])
@@ -135,16 +135,16 @@ class Issue:
         cmd(["git", "merge", "--no-ff", rewritten_head, "-m", message])
         cmd(["git", "push", "origin", "staging"])
 
-    def delete_staging_pr_branch(self):
-        cmd(["git", "push", "origin", "--delete", f"staging/pr-{self.pr_num}"])
+    def delete_tmp_branch(self):
+        cmd(["git", "push", "origin", "--delete", self.tmp_branch])
 
     def post_success(self, reviewers):
-        reviewer_list = ""
+        message = "Successfully added trailers and merged into `staging`."
         if reviewers:
-            reviewer_list = " Added `Reviewed-by`'s for:"
-            for reviewer in reviewers:
-                reviewer_list += f"\n- {reviewer}"
-        self.post_comment(f"Successfully added trailers, merged into `staging`, and preserved PR status.\n{reviewer_list}")
+            message += " Added `Reviewed-by` trailers for: "
+            message += ", ".join(map(lambda r: f"@{r}", reviewers))
+            message += "."
+        self.post_comment(message)
 
     def run(self):
         try:
@@ -154,13 +154,13 @@ class Issue:
             pr_data = self.fetch_pr_metadata()
             reviewers = self.fetch_reviews(reviewers_meta)
 
-            self.create_staging_pr_branch()
-            self.change_pr_target()
-            self.merge_pr_fast_forward(pr_data)
+            self.create_tmp_branch()
+            self.change_target_to_tmp_branch()
+            self.merge_into_tmp_branch(pr_data)
             self.apply_trailers("origin/staging", pr_data['html_url'], reviewers, reviewers_meta)
-            self.merge_to_staging_and_push(pr_data)
+            self.merge_into_staging_and_push(pr_data)
 
-            self.delete_staging_pr_branch()
+            self.delete_tmp_branch()
             self.post_success(reviewers)
             
         except Exception as e:
