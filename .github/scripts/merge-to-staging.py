@@ -5,6 +5,7 @@ import subprocess
 import sys
 import tomllib
 import traceback
+from time import sleep
 
 def cmd(command, env=None):
     current_env = os.environ.copy()
