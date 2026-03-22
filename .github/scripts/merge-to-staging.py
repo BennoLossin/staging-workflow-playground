@@ -81,7 +81,7 @@ class Issue:
         return sorted(list(reviewers))
 
     def create_tmp_branch(self):
-        self.tmp_branch = f"staging/pr-{self.pr_num}"
+        self.tmp_branch = f"staging-pr/{self.pr_num}"
         cmd(["git", "checkout", "-b", self.tmp_branch, "origin/staging"])
         cmd(["git", "push", "origin", self.tmp_branch])
 
