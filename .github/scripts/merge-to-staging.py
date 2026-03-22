@@ -87,8 +87,8 @@ class Issue:
 
     def prepare_staging_queue(self, merge_base):
         cmd(["git", "checkout", "staging-queue"])
-        cmd(["git", "reset", "hard", merge_base])
-        cmd(["git", "push", "origin", "staging-queue"])
+        cmd(["git", "reset", "--hard", merge_base])
+        cmd(["git", "push", "--force", "origin", "staging-queue"])
 
     def target_staging_queue(self):
         api_url = f"https://api.github.com/repos/{self.repo}/pulls/{self.pr_num}"
