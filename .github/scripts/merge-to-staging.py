@@ -164,6 +164,7 @@ class Issue:
             self.apply_trailers(merge_base, pr_data['html_url'], reviewers, reviewers_meta)
             self.merge_into_staging_and_push(pr_data)
 
+            sleep(10)
             self.delete_tmp_branch()
             self.post_success(reviewers)
             
