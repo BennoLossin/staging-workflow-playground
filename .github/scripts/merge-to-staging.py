@@ -80,9 +80,13 @@ class Issue:
             
         return sorted(list(reviewers))
 
-    def create_tmp_branch(self):
+    def get_merge_base(self, pr_data):
+        cmd(["git", "fetch", pr_data['head']['repo']['clone_url'], pr_data['head']['ref']])
+        return cmd(["git", "merge-base", "origin/staging", "FETCH_HEAD"])
+
+    def create_tmp_branch(self, merge_base):
         self.tmp_branch = f"staging-pr/{self.pr_num}"
-        cmd(["git", "checkout", "-b", self.tmp_branch, "origin/staging"])
+        cmd(["git", "checkout", "-b", self.tmp_branch, merge_base])
         cmd(["git", "push", "origin", self.tmp_branch])
 
     def change_target_to_tmp_branch(self):
@@ -95,8 +99,7 @@ class Issue:
         if resp.status_code != 200:
             raise Exception(f"Failed to change PR target: {resp.text}")
 
-    def merge_into_tmp_branch(self, pr_data):
-        cmd(["git", "fetch", pr_data['head']['repo']['clone_url'], pr_data['head']['ref']])
+    def merge_into_tmp_branch(self):
         cmd(["git", "merge", "--ff-only", "FETCH_HEAD"])
         cmd(["git", "push", "origin", self.tmp_branch])
 
@@ -154,17 +157,18 @@ class Issue:
             pr_data = self.fetch_pr_metadata()
             reviewers = self.fetch_reviews(reviewers_meta)
 
-            self.create_tmp_branch()
+            merge_base = self.get_merge_base(pr_data)
+            self.create_tmp_branch(merge_base)
             self.change_target_to_tmp_branch()
-            self.merge_into_tmp_branch(pr_data)
-            self.apply_trailers("origin/staging", pr_data['html_url'], reviewers, reviewers_meta)
+            self.merge_into_tmp_branch()
+            self.apply_trailers(merge_base, pr_data['html_url'], reviewers, reviewers_meta)
             self.merge_into_staging_and_push(pr_data)
 
             self.delete_tmp_branch()
             self.post_success(reviewers)
             
         except Exception as e:
-            trace = traceback.format_exec()
+            trace = traceback.format_exc()
             error_msg = f"Merge unsuccessful:\n```\n{str(e)}\n\n{trace}\n```"
             print(error_msg, file=sys.stderr)
             self.post_comment(error_msg)
